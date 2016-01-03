@@ -10,6 +10,12 @@ class LeinDepsTask extends DefaultTask {
 
     String gradleRepoPath = "/home/rcs/.gradle/caches/modules-2/files-2.1/"
 
+    def getProjFile() {
+        if (projFileName == null)
+            return getProject().file("project.clj")
+        else
+            return new File(projFileName)
+    }
     @TaskAction
     def curLeinDeps() {
         def ld = getLeinDeps()
@@ -24,7 +30,9 @@ class LeinDepsTask extends DefaultTask {
         */
         //def newPfile = new File("/home/rcs/opt/java/vegaq/project.clj")
 
-        def newPfile = new File(projFileName)
+        File newPfile = getProjFile() //new File(getProjFileName())
+
+        println newPfile
 
         newPfile.newWriter().withWriter { w ->
             splits[0].eachLine { l ->
@@ -48,7 +56,8 @@ class LeinDepsTask extends DefaultTask {
 
     def getSplits() {
         //def pfile = new File("/home/rcs/opt/java/vegaq/project.clj").text
-        def pfile = new File(projFileName).text
+        //def pfile = new File(projFileName).text
+        def pfile = getProjFile().text
         pfile.split(";deps")
     }
 
