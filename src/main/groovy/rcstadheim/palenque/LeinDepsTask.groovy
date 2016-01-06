@@ -80,7 +80,8 @@ class LeinDepsTask extends DefaultTask {
         }
         else {
             compile.each {
-                result << "\t\"${it.canonicalPath}\""
+                def unixPath = it.canonicalPath.replace("\\","/")
+                result << "\t\"$unixPath\""
             }
         }
 
