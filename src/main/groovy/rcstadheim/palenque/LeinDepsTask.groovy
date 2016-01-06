@@ -10,6 +10,8 @@ class LeinDepsTask extends DefaultTask {
 
     String gradleRepoPath = "/home/rcs/.gradle/caches/modules-2/files-2.1/"
 
+    boolean useLibsSymlink = true
+
     def getProjFile() {
         if (projFileName == null)
             return getProject().file("project.clj")
@@ -66,12 +68,19 @@ class LeinDepsTask extends DefaultTask {
         def allc = getProject().getConfigurations().getAsMap()
         def compile = allc.get('compile')
 
-        compile.each {
-            def ar = it.canonicalPath.split(gradleRepoPath)
-            if (ar.length == 1) {
-                result << "\t\"${ar.getAt(0)}\""
-            } else {
-                result << makeLibPath(ar.getAt(1))
+        if (useLibsSymlink == true) {
+            compile.each {
+                def ar = it.canonicalPath.split(gradleRepoPath)
+                if (ar.length == 1) {
+                    result << "\t\"${ar.getAt(0)}\""
+                } else {
+                    result << makeLibPath(ar.getAt(1))
+                }
+            }
+        }
+        else {
+            compile.each {
+                result << "\t\"${it.canonicalPath}\""
             }
         }
 
