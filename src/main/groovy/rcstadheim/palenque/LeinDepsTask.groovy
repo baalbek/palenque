@@ -1,15 +1,18 @@
 package rcstadheim.palenque 
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
 
 class LeinDepsTask extends DefaultTask {
 
+
     String projFileName
 
     String gradleRepoPath = "/home/rcs/.gradle/caches/modules-2/files-2.1/"
 
+    @Input
     boolean useLibsSymlink = true
 
     def getProjFile() {
@@ -22,15 +25,6 @@ class LeinDepsTask extends DefaultTask {
     def curLeinDeps() {
         def ld = getLeinDeps()
         def splits = getSplits()
-        /*
-        ld.each { c ->
-            print c
-        }
-        splits.each { s ->
-            println s
-        }
-        */
-        //def newPfile = new File("/home/rcs/opt/java/vegaq/project.clj")
 
         File newPfile = getProjFile() //new File(getProjFileName())
 
@@ -40,11 +34,11 @@ class LeinDepsTask extends DefaultTask {
             splits[0].eachLine { l ->
                 w << l << "\n"
             }
-            w << "\t\t;deps\n"
+            w << "    ;deps\n"
             ld.each { d ->
                 w << "\t\t" << d << "\n"
             }
-            w << "\t\t;deps\n"
+            w << "    ;deps\n"
             //splits[2].eachLine { l ->
             splits.last().eachLine { l ->
                 w << l << "\n"
@@ -53,7 +47,7 @@ class LeinDepsTask extends DefaultTask {
     }
 
     static def makeLibPath(curLib) {
-        "\t\"libs/${curLib}\""
+        "    \"libs/${curLib}\""
     }
 
     def getSplits() {
@@ -72,7 +66,7 @@ class LeinDepsTask extends DefaultTask {
             compile.each {
                 def ar = it.canonicalPath.split(gradleRepoPath)
                 if (ar.length == 1) {
-                    result << "\t\"${ar.getAt(0)}\""
+                    result << "    \"${ar.getAt(0)}\""
                 } else {
                     result << makeLibPath(ar.getAt(1))
                 }
@@ -81,7 +75,7 @@ class LeinDepsTask extends DefaultTask {
         else {
             compile.each {
                 def unixPath = it.canonicalPath.replace("\\","/")
-                result << "\t\"$unixPath\""
+                result << "    \"$unixPath\""
             }
         }
 
