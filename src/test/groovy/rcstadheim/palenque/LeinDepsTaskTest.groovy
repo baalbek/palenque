@@ -12,10 +12,13 @@ import static org.junit.Assert.*
 
 class LeinDepsTaskTest {
     @Test
-    public void testProjectClj() {
+    public void testLeinDeps() {
         Project project = ProjectBuilder.builder().build()
         def pf = project.file("build.gradle")
-        //assertEquals(pf.absolutePath, "/home/rcs/java/palenque/build.gradle")
-        assertEquals(1 == 1)
+        def task = project.task('leinDeps', type: LeinDepsTask)
+        assertTrue(task instanceof LeinDepsTask)
+        def t = task as LeinDepsTask
+        t.projFileName = '/home/rcs/opt/java/palenque/src/test/resources/project.clj'
+        t.execute()
     }
 }

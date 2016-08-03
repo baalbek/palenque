@@ -5,7 +5,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
 
-class LeinDepsTask extends DefaultTask {
+class LeinResourcesTask extends DefaultTask {
 
 
     String projFileName
@@ -50,14 +50,6 @@ class LeinDepsTask extends DefaultTask {
         "    \"libs/${curLib}\""
     }
 
-
-    def x() {
-        def subp = subprojects.findAll()
-        subp.each {
-            println it.projectDir
-        }
-    }
-
     def getSplits() {
         //def pfile = new File("/home/rcs/opt/java/vegaq/project.clj").text
         //def pfile = new File(projFileName).text
@@ -70,7 +62,7 @@ class LeinDepsTask extends DefaultTask {
         def allc = getProject().getConfigurations().getAsMap()
         def compile = allc.get('compile')
 
-        if (useLibsSymlink) {
+        if (useLibsSymlink == true) {
             compile.each {
                 def ar = it.canonicalPath.split(gradleRepoPath)
                 if (ar.length == 1) {
