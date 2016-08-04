@@ -3,6 +3,7 @@ package rcstadheim.palenque
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.bundling.Jar
 
 
 class LeinDepsTask extends DefaultTask {
@@ -50,13 +51,33 @@ class LeinDepsTask extends DefaultTask {
         "    \"libs/${curLib}\""
     }
 
+    /*
+    task x << {
+        //def allc = getProject().getConfigurations().getAsMap()
+        //def compile = allc.get('compile')
 
-    def x() {
+
+        def g = getProject().gradle
+        println g
+
+        //def g = getProject().gradle.taskGraph
+        //def tep = getTEP(g)
+        //def entryTasks = getEntryTasks(tep)
+
         def subp = subprojects.findAll()
         subp.each {
             println it.projectDir
+            def at = it.getTasks()
+            Jar j = at.findByName('jar') as Jar
+            println j.archivePath
+        }
+        def bf = new File('build.gradle').text
+        bf.eachLine {
+
         }
     }
+    //*/
+
 
     def getSplits() {
         //def pfile = new File("/home/rcs/opt/java/vegaq/project.clj").text
@@ -67,8 +88,9 @@ class LeinDepsTask extends DefaultTask {
 
     def getLeinDeps() {
         def result = []
-        def allc = getProject().getConfigurations().getAsMap()
-        def compile = allc.get('compile')
+        //def allc = getProject().getConfigurations().getAsMap()
+        //def compile = allc.get('compile')
+        def compile = getConfigurations().getByName('compile')
 
         if (useLibsSymlink) {
             compile.each {
