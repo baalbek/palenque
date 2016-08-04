@@ -51,32 +51,72 @@ class LeinDepsTask extends DefaultTask {
         "    \"libs/${curLib}\""
     }
 
-    /*
-    task x << {
-        //def allc = getProject().getConfigurations().getAsMap()
-        //def compile = allc.get('compile')
+//    task x << {
+//        //def allc = getProject().getConfigurations().getAsMap()
+//        //def compile = allc.get('compile')
+//
+//
+//        def g = getProject().gradle
+//        println g
+//
+//        //def g = getProject().gradle.taskGraph
+//        //def tep = getTEP(g)
+//        //def entryTasks = getEntryTasks(tep)
+//
+//        def subp = subprojects.findAll()
+//        subp.each {
+//            println it.projectDir
+//            def at = it.getTasks()
+//            Jar j = at.findByName('jar') as Jar
+//            println j.archivePath
+//        }
+//        def bf = new File('build.gradle').text
+//        bf.eachLine {
+//
+//        }
+//    }
 
+//    task y << {
+//        def bf = new File('build.gradle').text
+//        def compileMatcher = ~/.*compile.*|.*runtime.*/
+//        def depMatcher = ~/.*dependencies+\s.*/
+//        def depCloseMatcher = ~/.*}.*/
+//        def depNameMatcher = ~/.*"(.*)".*/
+//        def dollarMatcher = ~/(.*)\$(.*)/
+//        def inDeps = false
+//
+//        bf.eachLine {
+//            def m = it =~ depMatcher
+//            if (m.matches()) {
+//                inDeps = true
+//            }
+//            if (inDeps) {
+//                def m2 = it =~ depCloseMatcher
+//                if (m2.matches()) {
+//                    inDeps = false
+//                }
+//                if (inDeps){
+//                    def m3 = it =~ compileMatcher
+//                    if (m3.matches()) {
+//                        def m4 = it =~ depNameMatcher
+//                        if (m4.matches()) {
+//                            def depName = m4.group(1)
+//                            def m5 = depName =~ dollarMatcher
+//                            if (m5.matches()) {
+//                                def m5split = m5.group(1).split(":")
+//                                def depNamex = sprintf("%s:%s",m5split[0],m5split[1])
+//                                printf("[%s \"%s\"]\n", depNamex, getProperty(m5.group(2)))
+//                            }
+//                            else {
+//                                println depName
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
-        def g = getProject().gradle
-        println g
-
-        //def g = getProject().gradle.taskGraph
-        //def tep = getTEP(g)
-        //def entryTasks = getEntryTasks(tep)
-
-        def subp = subprojects.findAll()
-        subp.each {
-            println it.projectDir
-            def at = it.getTasks()
-            Jar j = at.findByName('jar') as Jar
-            println j.archivePath
-        }
-        def bf = new File('build.gradle').text
-        bf.eachLine {
-
-        }
-    }
-    //*/
 
 
     def getSplits() {
