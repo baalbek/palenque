@@ -47,11 +47,9 @@ class LeinDepsTask extends DefaultTask {
         def lrs = leinResources()
 
         out.withWriter() { writer ->
-            /* 
-            lrs.each { line ->
-                writer.writeLine line
+            lrs.each { 
+                writer.writeLine it.getName()
             }
-            */
             lds.each { 
                 writer.writeLine it
             }
