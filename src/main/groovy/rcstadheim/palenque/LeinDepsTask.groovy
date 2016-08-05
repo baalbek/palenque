@@ -22,34 +22,69 @@ class LeinDepsTask extends DefaultTask {
         else
             return new File(projFileName)
     }
+
     @TaskAction
-    def curLeinDeps() {
-        def ld = getLeinDeps()
-        def splits = getSplits()
+    def generateLeiningenFile() {
+        leinTasks()
+    }
 
-        File newPfile = getProjFile() //new File(getProjFileName())
+    def leinTasks() {
+        def bf = new File('build.gradle').text
+        def compileMatcher = ~/.*compile.*|.*runtime.*/
+        def depMatcher = ~/.*dependencies+\s.*/
+        def depCloseMatcher = ~/.*}.*/
+        def depNameMatcher = ~/.*"(.*)".*/
+        def dollarMatcher = ~/(.*)\$(.*)/
+        def inDeps = false
 
-        println newPfile
-
-        newPfile.newWriter().withWriter { w ->
-            splits[0].eachLine { l ->
-                w << l << "\n"
+        bf.eachLine {
+            def m = it =~ depMatcher
+            if (m.matches()) {
+                inDeps = true
             }
-            w << "    ;deps\n"
-            ld.each { d ->
-                w << "\t\t" << d << "\n"
-            }
-            w << "    ;deps\n"
-            //splits[2].eachLine { l ->
-            splits.last().eachLine { l ->
-                w << l << "\n"
+            if (inDeps) {
+                def m2 = it =~ depCloseMatcher
+                if (m2.matches()) {
+                    inDeps = false
+                }
+                if (inDeps){
+                    def m3 = it =~ compileMatcher
+                    if (m3.matches()) {
+                        def m4 = it =~ depNameMatcher
+                        if (m4.matches()) {
+                            def depName = m4.group(1)
+                            def m5 = depName =~ dollarMatcher
+                            if (m5.matches()) {
+                                def result = gradleDepWithParamToLeinDep(m5)
+                                println result
+                            }
+                            else {
+                                def result = gradleDepToLeinDep(depName)
+                                println result
+                            }
+                        }
+                    }
+                }
             }
         }
     }
+    def leinResources() {
 
-    static def makeLibPath(curLib) {
-        "    \"libs/${curLib}\""
     }
+    def gradleDepWithParamToLeinDep(m) {
+        def msplit = m.group(1).split(":")
+        def depNamex = sprintf("%s:%s",msplit[0],msplit[1])
+        def result = sprintf("[%s \"%s\"]", depNamex, getProject().getProperty(m.group(2)))
+        //def result = sprintf("[%s \"%s\"]", depNamex, "1.0")
+        result
+    }
+
+    def gradleDepToLeinDep(dep) {
+        def s = dep.split(":")
+        def result = sprintf("[%s:%s \"%s\"]", s[0], s[1], s[2])
+        result
+    }
+}
 
 //    task x << {
 //        //def allc = getProject().getConfigurations().getAsMap()
@@ -117,38 +152,3 @@ class LeinDepsTask extends DefaultTask {
 //        }
 //    }
 
-
-
-    def getSplits() {
-        //def pfile = new File("/home/rcs/opt/java/vegaq/project.clj").text
-        //def pfile = new File(projFileName).text
-        def pfile = getProjFile().text
-        pfile.split(";deps")
-    }
-
-    def getLeinDeps() {
-        def result = []
-        //def allc = getProject().getConfigurations().getAsMap()
-        //def compile = allc.get('compile')
-        def compile = getConfigurations().getByName('compile')
-
-        if (useLibsSymlink) {
-            compile.each {
-                def ar = it.canonicalPath.split(gradleRepoPath)
-                if (ar.length == 1) {
-                    result << "    \"${ar.getAt(0)}\""
-                } else {
-                    result << makeLibPath(ar.getAt(1))
-                }
-            }
-        }
-        else {
-            compile.each {
-                def unixPath = it.canonicalPath.replace("\\","/")
-                result << "    \"$unixPath\""
-            }
-        }
-
-        return result
-    }
-}

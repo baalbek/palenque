@@ -17,8 +17,8 @@ class LeinDepsTaskTest {
         def pf = project.file("build.gradle")
         def task = project.task('leinDeps', type: LeinDepsTask)
         assertTrue(task instanceof LeinDepsTask)
-        def t = task as LeinDepsTask
-        t.projFileName = '/home/rcs/opt/java/palenque/src/test/resources/project.clj'
-        t.execute()
+        //def t = task as LeinDepsTask
+        //t.projFileName = '/home/rcs/opt/java/palenque/src/test/resources/project.clj'
+        //t.execute()
     }
 }
