@@ -2,44 +2,59 @@ package rcstadheim.palenque
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Output
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
 
 
 class LeinDepsTask extends DefaultTask {
 
+    @InputFile
+    File leinTemplateFile 
+
+    @InputFile
+    File gradleProjectFile
+
+    @OutputFile
+    File leinProjectFile 
 
     @Input
-    String leinFileName
-
-    @Input
-    String outputFileName
-
     String gradleRepoPath = "/home/rcs/.gradle/caches/modules-2/files-2.1/"
-
-    def getLeinFile() {
-        if (leinFileName == null)
-            return getProject().file("project.clj")
-        else
-            return new File(leinFileName)
+    
+    def getFileOrDefault(f,defaultFileName) {
+        if (f == null) {
+            getProject().file(defaultFileName)
+        }
+        else {
+            f 
+        }
     }
-    def getOutputFile() {
-        if (outputFileName == null)
-            return getProject().file("project.clj")
-        else
-            return new File(outputFileName)
+    def getGradleProjectFile() {
+        getFileOrDefault(gradleProjectFile,'build.gradle')
+    }
+    def getLeinProjectFile() {
+        getFileOrDefault(leinProjectFile,'project.clj')
+    }
+    def getLeinTemplateFile() {
+        getFileOrDefault(leinProjectFile,'project.clj')
     }
 
     @TaskAction
     def generateLeiningenFile() {
+        def out = getLeinProjectFile()
         def lds = leinTasks()
-        lds.each {
-            println it
-        }
         def lrs = leinResources()
-        lrs.each {
-            println it
+
+        out.withWriter() { writer ->
+            /* 
+            lrs.each { line ->
+                writer.writeLine line
+            }
+            */
+            lds.each { 
+                writer.writeLine it
+            }
         }
     }
 
@@ -57,7 +72,7 @@ class LeinDepsTask extends DefaultTask {
 
     def leinTasks() {
         def result = []
-        def bf = new File('build.gradle').text
+        //def bf = getGradleProjectFile().text //new File('build.gradle').text
         def compileMatcher = ~/.*compile.*|.*runtime.*/
         def depMatcher = ~/.*dependencies+\s.*/
         def depCloseMatcher = ~/.*}.*/
@@ -65,7 +80,8 @@ class LeinDepsTask extends DefaultTask {
         def dollarMatcher = ~/(.*)\$(.*)/
         def inDeps = false
 
-        bf.eachLine {
+        //bf.eachLine {
+        getGradleProjectFile().eachLine {
             def m = it =~ depMatcher
             if (m.matches()) {
                 inDeps = true
