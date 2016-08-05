@@ -2,6 +2,7 @@ package rcstadheim.palenque
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Output
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
 
@@ -9,26 +10,53 @@ import org.gradle.api.tasks.bundling.Jar
 class LeinDepsTask extends DefaultTask {
 
 
-    String projFileName
+    @Input
+    String leinFileName
+
+    @Input
+    String outputFileName
 
     String gradleRepoPath = "/home/rcs/.gradle/caches/modules-2/files-2.1/"
 
-    @Input
-    boolean useLibsSymlink = true
-
-    def getProjFile() {
-        if (projFileName == null)
+    def getLeinFile() {
+        if (leinFileName == null)
             return getProject().file("project.clj")
         else
-            return new File(projFileName)
+            return new File(leinFileName)
+    }
+    def getOutputFile() {
+        if (outputFileName == null)
+            return getProject().file("project.clj")
+        else
+            return new File(outputFileName)
     }
 
     @TaskAction
     def generateLeiningenFile() {
-        leinTasks()
+        def lds = leinTasks()
+        lds.each {
+            println it
+        }
+        def lrs = leinResources()
+        lrs.each {
+            println it
+        }
+    }
+
+    def leinResources() {
+        def result = []
+
+        def subp = getProject().subprojects.findAll()
+        subp.each {
+            def at = it.getTasks()
+            Jar j = at.findByName('jar') as Jar
+            result.add(j.archivePath)
+        }
+        result
     }
 
     def leinTasks() {
+        def result = []
         def bf = new File('build.gradle').text
         def compileMatcher = ~/.*compile.*|.*runtime.*/
         def depMatcher = ~/.*dependencies+\s.*/
@@ -55,22 +83,21 @@ class LeinDepsTask extends DefaultTask {
                             def depName = m4.group(1)
                             def m5 = depName =~ dollarMatcher
                             if (m5.matches()) {
-                                def result = gradleDepWithParamToLeinDep(m5)
-                                println result
+                                def ld = gradleDepWithParamToLeinDep(m5)
+                                result.add(ld)
                             }
                             else {
-                                def result = gradleDepToLeinDep(depName)
-                                println result
+                                def ld = gradleDepToLeinDep(depName)
+                                result.add(ld)
                             }
                         }
                     }
                 }
             }
         }
+        result
     }
-    def leinResources() {
 
-    }
     def gradleDepWithParamToLeinDep(m) {
         def msplit = m.group(1).split(":")
         def depNamex = sprintf("%s:%s",msplit[0],msplit[1])
