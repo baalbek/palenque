@@ -1,7 +1,6 @@
 package rcstadheim.palenque 
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -10,8 +9,7 @@ import org.gradle.api.tasks.bundling.Jar
 
 class LeinDepsTask extends DefaultTask {
 
-    @InputFile
-    File leinTemplateFile 
+    File leinTemplateFile
 
     @InputFile
     File gradleProjectFile
@@ -19,7 +17,6 @@ class LeinDepsTask extends DefaultTask {
     @OutputFile
     File leinProjectFile 
 
-    @Input
     String gradleRepoPath = "/home/rcs/.gradle/caches/modules-2/files-2.1/"
     
     def getFileOrDefault(f,defaultFileName) {
@@ -37,7 +34,7 @@ class LeinDepsTask extends DefaultTask {
         getFileOrDefault(leinProjectFile,'project.clj')
     }
     def getLeinTemplateFile() {
-        getFileOrDefault(leinProjectFile,'project.clj')
+        getFileOrDefault(leinTemplateFile,'local/project.clj')
     }
 
     @TaskAction
@@ -46,14 +43,39 @@ class LeinDepsTask extends DefaultTask {
         def lds = leinTasks()
         def lrs = leinResources()
 
-        out.withWriter() { writer ->
-            lrs.each { 
-                writer.writeLine it.getName()
-            }
-            lds.each { 
-                writer.writeLine it
+        def splits = getSplits()
+
+        if (splits.length == 3)  {
+            out.withWriter() { writer ->
+                splits[0].eachLine { l ->
+                    writer << l << "\n"
+                }
+                lds.each { d ->
+                    writer << "\t\t" << d << "\n"
+                }
+                splits[1].eachLine { l ->
+                    writer << l << "\n"
+                }
+                lrs.each { r ->
+                    writer << "\t\t\"" << r.getAbsolutePath() << "\"\n"
+                }
+                splits[2].eachLine { l ->
+                    writer << l << "\n"
+                }
             }
         }
+        else {
+            println "Splits != 3 not implemented"
+            println splits.length
+            getLeinTemplateFile().eachLine {
+                println it
+            }
+        }
+    }
+
+    def getSplits() {
+        def pfile = getLeinTemplateFile().text
+        pfile.split(";palenque")
     }
 
     def leinResources() {
@@ -127,69 +149,22 @@ class LeinDepsTask extends DefaultTask {
     }
 }
 
-//    task x << {
-//        //def allc = getProject().getConfigurations().getAsMap()
-//        //def compile = allc.get('compile')
-//
-//
-//        def g = getProject().gradle
-//        println g
-//
-//        //def g = getProject().gradle.taskGraph
-//        //def tep = getTEP(g)
-//        //def entryTasks = getEntryTasks(tep)
-//
-//        def subp = subprojects.findAll()
-//        subp.each {
-//            println it.projectDir
-//            def at = it.getTasks()
-//            Jar j = at.findByName('jar') as Jar
-//            println j.archivePath
-//        }
-//        def bf = new File('build.gradle').text
-//        bf.eachLine {
-//
-//        }
-//    }
+/*
+task distribution << {
+    println "We build the zip with version=$version"
+}
 
-//    task y << {
-//        def bf = new File('build.gradle').text
-//        def compileMatcher = ~/.*compile.*|.*runtime.*/
-//        def depMatcher = ~/.*dependencies+\s.*/
-//        def depCloseMatcher = ~/.*}.*/
-//        def depNameMatcher = ~/.*"(.*)".*/
-//        def dollarMatcher = ~/(.*)\$(.*)/
-//        def inDeps = false
-//
-//        bf.eachLine {
-//            def m = it =~ depMatcher
-//            if (m.matches()) {
-//                inDeps = true
-//            }
-//            if (inDeps) {
-//                def m2 = it =~ depCloseMatcher
-//                if (m2.matches()) {
-//                    inDeps = false
-//                }
-//                if (inDeps){
-//                    def m3 = it =~ compileMatcher
-//                    if (m3.matches()) {
-//                        def m4 = it =~ depNameMatcher
-//                        if (m4.matches()) {
-//                            def depName = m4.group(1)
-//                            def m5 = depName =~ dollarMatcher
-//                            if (m5.matches()) {
-//                                def m5split = m5.group(1).split(":")
-//                                def depNamex = sprintf("%s:%s",m5split[0],m5split[1])
-//                                printf("[%s \"%s\"]\n", depNamex, getProperty(m5.group(2)))
-//                            }
-//                            else {
-//                                println depName
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+task release(dependsOn: 'distribution') << {
+    println 'We release now'
+}
+
+gradle.taskGraph.whenReady {taskGraph ->
+    if (taskGraph.hasTask(release)) {
+        version = '1.0'
+    } else {
+        version = '1.0-SNAPSHOT'
+    }
+}
+ */
+
 
