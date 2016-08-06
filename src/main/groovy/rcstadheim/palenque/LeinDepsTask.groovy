@@ -136,7 +136,7 @@ class LeinDepsTask extends DefaultTask {
 
     def gradleDepWithParamToLeinDep(m) {
         def msplit = m.group(1).split(":")
-        def depNamex = sprintf("%s:%s",msplit[0],msplit[1])
+        def depNamex = sprintf("%s/%s",msplit[0],msplit[1])
         def result = sprintf("[%s \"%s\"]", depNamex, getProject().getProperty(m.group(2)))
         //def result = sprintf("[%s \"%s\"]", depNamex, "1.0")
         result
@@ -144,7 +144,7 @@ class LeinDepsTask extends DefaultTask {
 
     def gradleDepToLeinDep(dep) {
         def s = dep.split(":")
-        def result = sprintf("[%s:%s \"%s\"]", s[0], s[1], s[2])
+        def result = sprintf("[%s/%s \"%s\"]", s[0], s[1], s[2])
         result
     }
 }
