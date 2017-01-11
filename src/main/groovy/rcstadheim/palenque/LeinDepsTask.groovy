@@ -37,6 +37,7 @@ class LeinDepsTask extends DefaultTask {
         getFileOrDefault(leinTemplateFile,'local/project.clj')
     }
 
+
     @TaskAction
     def generateLeiningenFile() {
         def out = getLeinProjectFile()
@@ -95,36 +96,43 @@ class LeinDepsTask extends DefaultTask {
         //def bf = getGradleProjectFile().text //new File('build.gradle').text
         def compileMatcher = ~/.*compile.*|.*runtime.*/
         def depMatcher = ~/.*dependencies+\s.*/
+        def projectMatcher = ~/.*project.*/
         def depCloseMatcher = ~/.*}.*/
         def depNameMatcher = ~/.*"(.*)".*/
         def dollarMatcher = ~/(.*)\$(.*)/
         def inDeps = false
+        def hasDepencencies = false
 
-        //bf.eachLine {
         getGradleProjectFile().eachLine {
-            def m = it =~ depMatcher
-            if (m.matches()) {
-                inDeps = true
-            }
-            if (inDeps) {
-                def m2 = it =~ depCloseMatcher
-                if (m2.matches()) {
-                    inDeps = false
+            if (!hasDepencencies) {
+                def m = it =~ depMatcher
+                if (m.matches()) {
+                    inDeps = true
                 }
-                if (inDeps){
-                    def m3 = it =~ compileMatcher
-                    if (m3.matches()) {
-                        def m4 = it =~ depNameMatcher
-                        if (m4.matches()) {
-                            def depName = m4.group(1)
-                            def m5 = depName =~ dollarMatcher
-                            if (m5.matches()) {
-                                def ld = gradleDepWithParamToLeinDep(m5)
-                                result.add(ld)
-                            }
-                            else {
-                                def ld = gradleDepToLeinDep(depName)
-                                result.add(ld)
+                if (inDeps) {
+                    def m2 = it =~ depCloseMatcher
+                    if (m2.matches()) {
+                        inDeps = false
+                        hasDepencencies = true
+                    }
+                    if (inDeps) {
+                        def m_proj = it =~ projectMatcher
+                        if (!m_proj.matches()) {
+                            def m3 = it =~ compileMatcher
+                            if (m3.matches()) {
+                                def m4 = it =~ depNameMatcher
+                                if (m4.matches()) {
+                                    def depName = m4.group(1)
+
+                                    def m5 = depName =~ dollarMatcher
+                                    if (m5.matches()) {
+                                        def ld = gradleDepWithParamToLeinDep(m5)
+                                        result.add(ld)
+                                    } else {
+                                        def ld = gradleDepToLeinDep(depName)
+                                        result.add(ld)
+                                    }
+                                }
                             }
                         }
                     }
@@ -138,12 +146,11 @@ class LeinDepsTask extends DefaultTask {
         def msplit = m.group(1).split(":")
         def depNamex = sprintf("%s/%s",msplit[0],msplit[1])
         def result = sprintf("[%s \"%s\"]", depNamex, getProject().getProperty(m.group(2)))
-        //def result = sprintf("[%s \"%s\"]", depNamex, "1.0")
         result
     }
 
-    def gradleDepToLeinDep(dep) {
-        def s = dep.split(":")
+    def gradleDepToLeinDep(depName) {
+        def s = depName.split(":")
         def result = sprintf("[%s/%s \"%s\"]", s[0], s[1], s[2])
         result
     }
